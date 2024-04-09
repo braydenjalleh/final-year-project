@@ -257,6 +257,28 @@ MonoBehaviour:
   intersectionRoadPrefab: {fileID: 6798872525888556672, guid: 400784e582672674d859feee3789eeeb, type: 3}
   threeWayIntersectionPrefab: {fileID: 55298397173100115, guid: 22ccf13eb379d6e47ada799abf7df5da, type: 3}
   cornerRoadPrefab: {fileID: 8281251248065266178, guid: 760fdcc4a216e6a439dc4e60e2ba60a5, type: 3}
+  buildingPrefabs:
+  - {fileID: 9135226121777117726, guid: ddfe77b97d6e00c49930f2969ab45ab3, type: 3}
+  - {fileID: 3213959322600748328, guid: 6fdb28bf975ea1e4eab19b2cdd08ce97, type: 3}
+  - {fileID: 142223154000636086, guid: 8190827ee0f6b314ea925af953ad0328, type: 3}
+  - {fileID: 5807053087292724267, guid: 51f3d79b3dc286b47ad9649fa9f11ff5, type: 3}
+  - {fileID: 5200884846326214260, guid: 5fac869a260c03a41bfda60898c52956, type: 3}
+  - {fileID: 133887314524122067, guid: a0970e47c1bfcb84695c95c3ab3d6f34, type: 3}
+  - {fileID: 502796332473071069, guid: 4aa0e3a6f51bb1d48b5f5cf6a436289f, type: 3}
+  - {fileID: 3336945495818194049, guid: 542cd2f0a8fbedf479e9bb493007a7ac, type: 3}
+  - {fileID: 7235943337766947370, guid: 6396bead435c5f9449b6353be72609b4, type: 3}
+  - {fileID: 3220521863217381960, guid: 3ca7685f66cdfb2488a0d145ca5bfca3, type: 3}
+  - {fileID: 750954788029158779, guid: 45dc626128d0bd243aab3244284a9855, type: 3}
+  - {fileID: 2777943215116674323, guid: 6d8d1597a58901f4baf7ce2ff6987454, type: 3}
+  - {fileID: 8268821674526753196, guid: 457bacd7ac13d0a468003fb165e04892, type: 3}
+  - {fileID: 576320852341340711, guid: 4fc238421a762f64492cef80fc5190e0, type: 3}
+  housePrefabs:
+  - {fileID: 9109959001276038660, guid: 106db4332f8725b498831786d1483644, type: 3}
+  - {fileID: 5488084281266155393, guid: 8d4137850933098429bce509c44cae27, type: 3}
+  - {fileID: 3205448743807997830, guid: 68e58473e103262478e8150088bc8817, type: 3}
+  apartmentPrefabs:
+  - {fileID: 6403535783380065875, guid: b310eadd97a3cc04d96b66eb8a20d16b, type: 3}
+  - {fileID: 8896056214486738389, guid: 27d25216123fecb4bbd431ffa27abb7a, type: 3}
 --- !u!4 &709614351
 Transform:
   m_ObjectHideFlags: 0
