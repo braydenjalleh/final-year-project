@@ -165,7 +165,8 @@ public class CityGrid : MonoBehaviour
 
                 // Choose a random direction for the street (0 for up, 1 for down)
                 int randomDirection = UnityEngine.Random.Range(0, 2);
-                int endRow = (randomDirection == 0) ? row - 10 : row + 10; 
+                int endRow = (randomDirection == 0) ? row - 10 : row + 10;
+                if (endRow >= size) endRow = size - 1;
 
                 // Try to create the street
                 bool isCreated = TryCreateVerticalStreet(row, col, endRow, grid);
@@ -180,7 +181,7 @@ public class CityGrid : MonoBehaviour
             }
 
             // Ensure at least one street is created going up and down from this row
-            if (!verticalUpStreetCreated)
+            if (!verticalUpStreetCreated && row != 0)
             {
                 for (int col = 0; col < size; col++)
                 {
@@ -188,7 +189,7 @@ public class CityGrid : MonoBehaviour
                 }
             }
 
-            if (!verticalDownStreetCreated)
+            if (!verticalDownStreetCreated && row != size - 10)
             {
                 for (int col = 0; col < size; col++)
                 {
@@ -292,7 +293,8 @@ public class CityGrid : MonoBehaviour
 
     bool TryCreateVerticalStreet(int startRow, int col, int endRow, CityCells[,] grid)
     {
-        if ((endRow >= size) || (endRow < 0)) return false;
+        endRow = (endRow >= size) ? size - 1 : endRow;
+        endRow = (endRow < 0) ? 0 : endRow;
 
         int step = (endRow > startRow) ? 1 : -1; // Determine the direction of the street
 
