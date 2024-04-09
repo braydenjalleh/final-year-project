@@ -20,6 +20,9 @@ public class CityGrid : MonoBehaviour
     public GameObject intersectionRoadPrefab;
     public GameObject threeWayIntersectionPrefab;
     public GameObject cornerRoadPrefab;
+    public GameObject[] buildingPrefabs;
+    public GameObject[] housePrefabs;
+    public GameObject[] apartmentPrefabs;
 
     CityCells[,] grid;
 
@@ -181,7 +184,7 @@ public class CityGrid : MonoBehaviour
             }
 
             // Ensure at least one street is created going up and down from this row
-            if (!verticalUpStreetCreated && row != 0)
+            if (!verticalUpStreetCreated && row != 0) //Adjust for first row condition
             {
                 for (int col = 0; col < size; col++)
                 {
@@ -189,7 +192,7 @@ public class CityGrid : MonoBehaviour
                 }
             }
 
-            if (!verticalDownStreetCreated && row != size - 10)
+            if (!verticalDownStreetCreated && row != size - 10) //Adjust for last row condition
             {
                 for (int col = 0; col < size; col++)
                 {
@@ -293,6 +296,7 @@ public class CityGrid : MonoBehaviour
 
     bool TryCreateVerticalStreet(int startRow, int col, int endRow, CityCells[,] grid)
     {
+        //If the endRow is beyond the grid size, adjust it to the last index
         endRow = (endRow >= size) ? size - 1 : endRow;
         endRow = (endRow < 0) ? 0 : endRow;
 
