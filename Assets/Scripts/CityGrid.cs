@@ -394,17 +394,21 @@ public class CityGrid : MonoBehaviour
             return;
         }
 
-        // Check if the current position is adjacent to a road, considering the building's footprint
         if (!IsAdjacentToRoad(x, y, selectedBuilding))
         {
             Debug.Log($"Cannot place building at {x},{y} - not adjacent to any road.");
             return;
         }
 
-        Vector3 worldPosition = new Vector3(x, 0, y); // Center the building in the grid cell
-        GameObject buildingInstance = Instantiate(selectedBuilding.prefab, worldPosition, Quaternion.identity);
+        // Determine the rotation based on the road's direction
+        Quaternion rotation = DetermineBuildingRotation(x, y, selectedBuilding);
+        Vector3 worldPosition = new Vector3(x, 0, y); // Starting position
+        worldPosition = AdjustPositionBasedOnRotation(worldPosition, rotation, selectedBuilding);
+
+        GameObject buildingInstance = Instantiate(selectedBuilding.prefab, worldPosition, rotation);
         MarkBuildingOccupied(x, y, selectedBuilding);
     }
+
 
 
 
@@ -434,6 +438,61 @@ public class CityGrid : MonoBehaviour
         }
 
         return false;
+    }
+    Quaternion DetermineBuildingRotation(int x, int y, BuildingData building)
+    {
+        // Initialize the direction weights
+        int northWeight = 0, southWeight = 0, eastWeight = 0, westWeight = 0;
+
+        // Check each edge of the building for adjacent roads
+        for (int offsetX = 0; offsetX < building.width; offsetX++)
+        {
+            if (y + building.depth < size && IsRoad(x + offsetX, y + building.depth))
+                northWeight++;
+            if (y - 1 >= 0 && IsRoad(x + offsetX, y - 1))
+                southWeight++;
+        }
+
+        for (int offsetY = 0; offsetY < building.depth; offsetY++)
+        {
+            if (x + building.width < size && IsRoad(x + building.width, y + offsetY))
+                eastWeight++;
+            if (x - 1 >= 0 && IsRoad(x - 1, y + offsetY))
+                westWeight++;
+        }
+
+        // Determine the direction with the maximum weight
+        int maxWeight = Mathf.Max(northWeight, southWeight, eastWeight, westWeight);
+        if (northWeight == maxWeight)
+            return Quaternion.Euler(0, 180, 0); // Facing north
+        if (southWeight == maxWeight)
+            return Quaternion.identity; // Default rotation, facing south
+        if (eastWeight == maxWeight)
+            return Quaternion.Euler(0, 270, 0); // Facing east
+        if (westWeight == maxWeight)
+            return Quaternion.Euler(0, 90, 0); // Facing west
+
+        return Quaternion.identity; // Default rotation if no roads or equal weights
+    }
+
+    Vector3 AdjustPositionBasedOnRotation(Vector3 originalPosition, Quaternion rotation, BuildingData building)
+    {
+        switch (rotation.eulerAngles.y)
+        {
+            case 0: // Facing south, no adjustment
+                break;
+            case 90: // Facing west
+                     // Assuming that the depth and width adjustments are to align the front of the building with the grid line facing the road
+                originalPosition += new Vector3(0, 0, building.depth + 1);
+                break;
+            case 180: // Facing north
+                originalPosition += new Vector3(building.width, 0, building.depth);
+                break;
+            case 270: // Facing east
+                originalPosition += new Vector3(building.width, 0, -1);
+                break;
+        }
+        return originalPosition;
     }
 
 
