@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -16,13 +17,18 @@ public class CityGrid : MonoBehaviour
     public int maxStreetSpacing = 9;
     public int roadHeightOffset = 0;
 
+    //Road objects
     public GameObject straightRoadPrefab;
     public GameObject intersectionRoadPrefab;
     public GameObject threeWayIntersectionPrefab;
     public GameObject cornerRoadPrefab;
+    //Building objects
     public GameObject[] buildingPrefabs;
     public GameObject[] housePrefabs;
     public GameObject[] apartmentPrefabs;
+
+    public BuildingData[] buildingData;
+    bool[,] occupied;
 
     CityCells[,] grid;
 
@@ -53,6 +59,8 @@ public class CityGrid : MonoBehaviour
             }
         }
         grid = new CityCells[size, size];
+
+        occupied = new bool[size, size];
         GenerateCityLayout();
 
         //grid = new CityCells[size, size];
@@ -67,7 +75,7 @@ public class CityGrid : MonoBehaviour
         //        grid[y, x] = cell;
         //    }
         //}
-
+        GenerateCity();
         DrawMesh(grid);
         DrawTexture(grid);
     }
@@ -209,7 +217,7 @@ public class CityGrid : MonoBehaviour
                 {
                     GameObject roadPrefab = DetermineRoadPrefab(x, y);
                     Quaternion rotation = DetermineRoadRotation(x, y); 
-                    Instantiate(roadPrefab, new Vector3(x, roadHeightOffset, y), rotation);
+                    Instantiate(roadPrefab, new Vector3(x + 0.5f, roadHeightOffset, y + 0.5f), rotation);
                 }
             }
         }
@@ -333,6 +341,129 @@ public class CityGrid : MonoBehaviour
     {
         if (x < 0 || x >= size || y < 0 || y >= size) return false; // Out of bounds check
         return grid[x, y].isRoad;
+    }
+
+    void GenerateCity()
+    {
+        for (int x = 0; x < size; x++)
+        {
+            for (int y = 0; y < size; y++)
+            {
+                if (!grid[x, y].isRoad && !occupied[x, y])
+                {
+                    string zone = DetermineZone(y);
+                    PlaceBuilding(x, y, zone);
+                }
+            }
+        }
+    }
+
+    string DetermineZone(int y)
+    {
+        // Example: Top half is residential, bottom half is commercial
+        return (y > size / 2) ? "residential" : "commercial";
+    }
+
+    bool CanPlaceBuilding(int x, int y, BuildingData building)
+    {
+        if (x < 0 || x + building.width > size || y < 0 || y + building.depth > size)
+            return false;
+
+        for (int offsetX = 0; offsetX < building.width; offsetX++)
+        {
+            for (int offsetY = 0; offsetY < building.depth; offsetY++)
+            {
+                int checkX = x + offsetX;
+                int checkY = y + offsetY;
+                if (occupied[checkX, checkY] || grid[checkX, checkY].isRoad)
+                    return false;
+            }
+        }
+        return true;
+    }
+
+
+
+    //edition 3
+    void PlaceBuilding(int x, int y, string zone)
+    {
+        BuildingData selectedBuilding = ChooseBuildingForSpace(x, y, zone);
+        if (selectedBuilding == null || !CanPlaceBuilding(x, y, selectedBuilding))
+        {
+            Debug.Log($"Cannot place building at {x},{y} - either out of bounds or overlaps with roads/other buildings.");
+            return;
+        }
+
+        // Check if the current position is adjacent to a road, considering the building's footprint
+        if (!IsAdjacentToRoad(x, y, selectedBuilding))
+        {
+            Debug.Log($"Cannot place building at {x},{y} - not adjacent to any road.");
+            return;
+        }
+
+        Vector3 worldPosition = new Vector3(x, 0, y); // Center the building in the grid cell
+        GameObject buildingInstance = Instantiate(selectedBuilding.prefab, worldPosition, Quaternion.identity);
+        MarkBuildingOccupied(x, y, selectedBuilding);
+    }
+
+
+
+    bool IsAdjacentToRoad(int x, int y, BuildingData building)
+    {
+        // Check each cell that the building would occupy and its surroundings for a road
+        for (int offsetX = 0; offsetX < building.width; offsetX++)
+        {
+            // Check north of the building
+            if (y + building.depth < size && IsRoad(x + offsetX, y + building.depth))
+                return true;
+
+            // Check south of the building
+            if (y - 1 >= 0 && IsRoad(x + offsetX, y - 1))
+                return true;
+        }
+
+        for (int offsetY = 0; offsetY < building.depth; offsetY++)
+        {
+            // Check east of the building
+            if (x + building.width < size && IsRoad(x + building.width, y + offsetY))
+                return true;
+
+            // Check west of the building
+            if (x - 1 >= 0 && IsRoad(x - 1, y + offsetY))
+                return true;
+        }
+
+        return false;
+    }
+
+
+
+    BuildingData ChooseBuildingForSpace(int x, int y, string zone)
+    {
+        List<BuildingData> potentialBuildings = new List<BuildingData>();
+        foreach (var building in buildingData)
+        {
+            if (building.zone == zone && CanPlaceBuilding(x, y, building))
+            {
+                potentialBuildings.Add(building);
+            }
+        }
+        if (potentialBuildings.Count == 0)
+            return null;
+
+        int randomIndex = UnityEngine.Random.Range(0, potentialBuildings.Count);
+        return potentialBuildings[randomIndex];
+    }
+
+    void MarkBuildingOccupied(int x, int y, BuildingData building)
+    {
+        for (int offsetX = 0; offsetX < building.width; offsetX++)
+        {
+            for (int offsetY = 0; offsetY < building.depth; offsetY++)
+            {
+                occupied[x + offsetX, y + offsetY] = true;
+            }
+        }
     }
 
     void DrawMesh(CityCells[,] grid)
