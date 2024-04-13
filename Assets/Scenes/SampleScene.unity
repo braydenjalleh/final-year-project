@@ -441,6 +441,9 @@ MonoBehaviour:
   - {fileID: 7038643243023465432, guid: 91c5606c01d8c2b4c9fe5027e7ec252b, type: 3}
   - {fileID: 6803163487113145832, guid: 155cce637a784594b8688c0d5371bded, type: 3}
   - {fileID: 6400613795078676925, guid: 5ac5a26211ede8a4a9881475ee495e0f, type: 3}
+  - {fileID: 8695592120001747941, guid: 8aae2c068fb340f49aa1271a1667db83, type: 3}
+  - {fileID: 6593479792650537780, guid: 8bff96a1de7af5f418998c63a475c52d, type: 3}
+  - {fileID: 6597381632293174251, guid: 929ecabeb4c20dc4c839ce0083d33213, type: 3}
   faunaPrefabs:
   - {fileID: 5609588624655586517, guid: 1a0dbf29fade4ae45afa63fef8933e61, type: 3}
   - {fileID: 4094607428883843720, guid: f6d99c6a07bb9f240af7a91b10266316, type: 3}
