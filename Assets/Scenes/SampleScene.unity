@@ -247,7 +247,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   terrainMaterial: {fileID: 2100000, guid: b248ff2e5a603ff4db8bf518fa752da6, type: 2}
-  waterLevel: 0.4
   scale: 0.1
   size: 100
   minStreetSpacing: 3
@@ -431,6 +430,24 @@ MonoBehaviour:
     width: 5
     depth: 3
     zone: commercial
+  propNoiseScale: 0.5
+  propDensity: 0.5
+  propsPrefabs:
+  - {fileID: 264655947184125349, guid: 5c4465f0dc2413740baf6f11add494d9, type: 3}
+  - {fileID: 6808316663284047437, guid: a68011704bbecb746ae72c66e536bab9, type: 3}
+  - {fileID: 3856765284689678621, guid: e3adbe0314b26a14ea3631ee4e498ae9, type: 3}
+  - {fileID: 1429121700575737, guid: 59ccd525a3de4b64c8baf82910c0fbbd, type: 3}
+  - {fileID: 4262980296061513115, guid: 36dcd04ec5749404ca3f648e43d3f7da, type: 3}
+  - {fileID: 7038643243023465432, guid: 91c5606c01d8c2b4c9fe5027e7ec252b, type: 3}
+  - {fileID: 6803163487113145832, guid: 155cce637a784594b8688c0d5371bded, type: 3}
+  - {fileID: 6400613795078676925, guid: 5ac5a26211ede8a4a9881475ee495e0f, type: 3}
+  faunaPrefabs:
+  - {fileID: 5609588624655586517, guid: 1a0dbf29fade4ae45afa63fef8933e61, type: 3}
+  - {fileID: 4094607428883843720, guid: f6d99c6a07bb9f240af7a91b10266316, type: 3}
+  - {fileID: 865674994942243246, guid: 2df323eda2ca865419e293292af0b1ff, type: 3}
+  - {fileID: 8020207311212164771, guid: e606733dfe70c6e4e912c43a482cf46b, type: 3}
+  faunaNoiseScale: 0.4
+  faunaDensity: 0.8
 --- !u!4 &709614351
 Transform:
   m_ObjectHideFlags: 0

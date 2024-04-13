@@ -9,7 +9,7 @@ using UnityEngine.Rendering;
 public class CityGrid : MonoBehaviour
 {
     public Material terrainMaterial;
-    public float waterLevel = .4f;
+    
     public float scale = .1f;
     public int size = 100;
     private const float VerticalStreetChance = 0.3f;
@@ -26,26 +26,22 @@ public class CityGrid : MonoBehaviour
     public GameObject[] buildingPrefabs;
     public GameObject[] housePrefabs;
     public GameObject[] apartmentPrefabs;
-
     public BuildingData[] buildingData;
     bool[,] occupied;
+    //Props
+    public float propNoiseScale = 0.6f;
+    public float propDensity = 0.7f;
+    public GameObject[] propsPrefabs;
+    public GameObject[] faunaPrefabs;
+    public float faunaNoiseScale = 0.5f; // Adjust based on your desired scale
+    public float faunaDensity = 0.5f; // Adjust the threshold for density
 
     CityCells[,] grid;
 
 
     void Start()
     {
-        float[,] noiseMap = new float[size, size];
-        float xOffset = UnityEngine.Random.Range(-10000f, 10000f);
-        float yOffset = UnityEngine.Random.Range(-10000f, 10000f);
-        //for (int y = 0; y < size; y++)
-        //{
-        //    for(int x = 0; x < size; x++)
-        //    { 
-        //        float noiseValue = Mathf.PerlinNoise(x * scale + xOffset, y * scale + yOffset);
-        //        noiseMap[x, y] = noiseValue;
-        //    }
-        //}
+        
 
         float[,] falloffMap = new float[size, size];
         for (int y = 0; y < size; y++)
@@ -62,20 +58,9 @@ public class CityGrid : MonoBehaviour
 
         occupied = new bool[size, size];
         GenerateCityLayout();
-
-        //grid = new CityCells[size, size];
-        //for (int y = 0; y < size; y++)
-        //{
-        //    for (int x = 0; x < size; x++)
-        //    {
-        //        float noiseValue = noiseMap[x, y];
-        //        noiseValue -= falloffMap[x,y];
-        //        bool isWater = noiseValue < waterLevel;
-        //        CityCells cell = new CityCells(isWater);
-        //        grid[y, x] = cell;
-        //    }
-        //}
-        GenerateCity();
+        GenerateBuildings();
+        GenerateProps(grid, occupied);
+        GenerateFauna(grid, occupied);
         DrawMesh(grid);
         DrawTexture(grid);
     }
@@ -161,8 +146,8 @@ public class CityGrid : MonoBehaviour
         //    }
         //} 
 
-        //Working edition 
-        //Edition... Doing a different logic of creating vertical streets that go up/down. Very bad and messy
+        //
+        //Latest working edition... Doing a different logic of creating vertical streets that go up/down. Very bad and messy
         // New logic for creating vertical streets
         for (int row = 0; row < size; row += 10)
         {
@@ -343,7 +328,9 @@ public class CityGrid : MonoBehaviour
         return grid[x, y].isRoad;
     }
 
-    void GenerateCity()
+    /******************************Building Generations/placement methods***********************************/
+
+    void GenerateBuildings()
     {
         for (int x = 0; x < size; x++)
         {
@@ -364,18 +351,29 @@ public class CityGrid : MonoBehaviour
         return (y > size / 2) ? "residential" : "commercial";
     }
 
-    bool CanPlaceBuilding(int x, int y, BuildingData building)
+
+
+    bool CanPlaceBuilding(int x, int y, BuildingData building, Quaternion rotation)
     {
-        if (x < 0 || x + building.width > size || y < 0 || y + building.depth > size)
+        // Adjust width and depth based on rotation if necessary
+        int width = building.width;
+        int depth = building.depth;
+        if (rotation.eulerAngles.y == 90 || rotation.eulerAngles.y == 270)
+        {
+            width = building.depth;
+            depth = building.width;
+        }
+
+        if (x < 0 || x + width > size || y < 0 || y + depth > size)
             return false;
 
-        for (int offsetX = 0; offsetX < building.width; offsetX++)
+        for (int offsetX = 0; offsetX < width; offsetX++)
         {
-            for (int offsetY = 0; offsetY < building.depth; offsetY++)
+            for (int offsetY = 0; offsetY < depth; offsetY++)
             {
                 int checkX = x + offsetX;
                 int checkY = y + offsetY;
-                if (occupied[checkX, checkY] || grid[checkX, checkY].isRoad)
+                if (occupied[checkX, checkY] || grid[checkX, checkY].isRoad || checkX > size)
                     return false;
             }
         }
@@ -384,33 +382,68 @@ public class CityGrid : MonoBehaviour
 
 
 
-    //edition 3
     void PlaceBuilding(int x, int y, string zone)
     {
         BuildingData selectedBuilding = ChooseBuildingForSpace(x, y, zone);
-        if (selectedBuilding == null || !CanPlaceBuilding(x, y, selectedBuilding))
+        BuildingData initialBuilding = selectedBuilding; // Keep the initial choice for comparison
+
+        while (selectedBuilding != null)
         {
-            Debug.Log($"Cannot place building at {x},{y} - either out of bounds or overlaps with roads/other buildings.");
-            return;
+            // Determine the optimal rotation for the selected building
+            Quaternion rotation = DetermineBuildingRotation(x, y, selectedBuilding);
+
+            // Check if the building can be placed with the given rotation and if it is adjacent to a road
+            if (CanPlaceBuilding(x, y, selectedBuilding, rotation) && IsAdjacentToRoad(x, y, selectedBuilding))
+            {
+                // Adjust position based on rotation
+                Vector3 worldPosition = AdjustPositionBasedOnRotation(new Vector3(x, 0, y), rotation, selectedBuilding);
+                // Instantiate and mark occupied
+                GameObject buildingInstance = Instantiate(selectedBuilding.prefab, worldPosition, rotation);
+                MarkBuildingOccupied(x, y, selectedBuilding, rotation);
+                return; // Successful placement
+            }
+            else
+            {
+                // If the chosen building doesn't fit, attempt to find an alternative
+                Debug.Log($"Attempting to find an alternative building for {x},{y}.");
+                selectedBuilding = FindAlternativeBuilding(x, y, zone, selectedBuilding);
+
+                // Avoid infinite loop in case where no suitable building is found
+                if (selectedBuilding == initialBuilding)
+                {
+                    Debug.Log($"Cycled through all options, no buildings fit at {x},{y}.");
+                    return;
+                }
+            }
         }
 
-        if (!IsAdjacentToRoad(x, y, selectedBuilding))
-        {
-            Debug.Log($"Cannot place building at {x},{y} - not adjacent to any road.");
-            return;
-        }
-
-        // Determine the rotation based on the road's direction
-        Quaternion rotation = DetermineBuildingRotation(x, y, selectedBuilding);
-        Vector3 worldPosition = new Vector3(x, 0, y); // Starting position
-        worldPosition = AdjustPositionBasedOnRotation(worldPosition, rotation, selectedBuilding);
-
-        GameObject buildingInstance = Instantiate(selectedBuilding.prefab, worldPosition, rotation);
-        MarkBuildingOccupied(x, y, selectedBuilding);
+        Debug.Log($"No suitable buildings found for {x},{y}.");
     }
 
+    BuildingData FindAlternativeBuilding(int x, int y, string zone, BuildingData previousBuilding)
+    {
+        List<BuildingData> candidates = new List<BuildingData>();
+        foreach (var building in buildingData)
+        {
+            if (building.zone == zone && building != previousBuilding)
+            {
+                Quaternion newRotation = DetermineBuildingRotation(x, y, building);
+                if (CanPlaceBuilding(x, y, building, newRotation) && IsAdjacentToRoad(x, y, building))
+                {
+                    candidates.Add(building);
+                }
+            }
+        }
 
+        if (candidates.Count > 0)
+        {
+            System.Random rng = new System.Random();
+            int randomIndex = rng.Next(candidates.Count);
+            return candidates[randomIndex];
+        }
 
+        return null;
+    }
 
     bool IsAdjacentToRoad(int x, int y, BuildingData building)
     {
@@ -483,13 +516,13 @@ public class CityGrid : MonoBehaviour
                 break;
             case 90: // Facing west
                      // Assuming that the depth and width adjustments are to align the front of the building with the grid line facing the road
-                originalPosition += new Vector3(0, 0, building.depth + 1);
+                originalPosition += new Vector3(0, 0, building.width);
                 break;
             case 180: // Facing north
                 originalPosition += new Vector3(building.width, 0, building.depth);
                 break;
             case 270: // Facing east
-                originalPosition += new Vector3(building.width, 0, -1);
+                originalPosition += new Vector3(building.depth , 0, 0);
                 break;
         }
         return originalPosition;
@@ -502,9 +535,20 @@ public class CityGrid : MonoBehaviour
         List<BuildingData> potentialBuildings = new List<BuildingData>();
         foreach (var building in buildingData)
         {
-            if (building.zone == zone && CanPlaceBuilding(x, y, building))
+            if (building.zone == zone)
             {
-                potentialBuildings.Add(building);
+                // Check if building can be placed facing its default orientation
+                bool canPlace = CanPlaceBuilding(x, y, building, Quaternion.identity);  // Default orientation
+
+                // Optionally check other orientations if necessary
+                if (!canPlace) canPlace = CanPlaceBuilding(x, y, building, Quaternion.Euler(0, 90, 0));  // Rotate 90 degrees
+                if (!canPlace) canPlace = CanPlaceBuilding(x, y, building, Quaternion.Euler(0, 180, 0)); // Rotate 180 degrees
+                if (!canPlace) canPlace = CanPlaceBuilding(x, y, building, Quaternion.Euler(0, 270, 0)); // Rotate 270 degrees
+
+                if (canPlace)
+                {
+                    potentialBuildings.Add(building);
+                }
             }
         }
         if (potentialBuildings.Count == 0)
@@ -514,16 +558,99 @@ public class CityGrid : MonoBehaviour
         return potentialBuildings[randomIndex];
     }
 
-    void MarkBuildingOccupied(int x, int y, BuildingData building)
+    void MarkBuildingOccupied(int x, int y, BuildingData building, Quaternion rotation)
     {
-        for (int offsetX = 0; offsetX < building.width; offsetX++)
+        int width = building.width;
+        int depth = building.depth;
+        if (rotation.eulerAngles.y == 90 || rotation.eulerAngles.y == 270)
         {
-            for (int offsetY = 0; offsetY < building.depth; offsetY++)
+            width = building.depth;
+            depth = building.width;
+        }
+
+        for (int offsetX = 0; offsetX < width; offsetX++)
+        {
+            for (int offsetY = 0; offsetY < depth; offsetY++)
             {
                 occupied[x + offsetX, y + offsetY] = true;
             }
         }
     }
+    /**********************************************Generate Props****************************************/
+
+    void GenerateProps(CityCells[,] grid, bool[,] occupied)
+    {
+        float[,] noiseMap = new float[size, size];
+        float xOffset = UnityEngine.Random.Range(-10000f, 10000f);
+        float yOffset = UnityEngine.Random.Range(-10000f, 10000f);
+
+        // Generate Perlin noise map for prop placement
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float noiseValue = Mathf.PerlinNoise(x * propNoiseScale + xOffset, y * propNoiseScale + yOffset);
+                noiseMap[x, y] = noiseValue;
+            }
+        }
+
+        // Place props based on noise map, avoiding roads and occupied cells
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                CityCells cell = grid[x, y];
+                if (!cell.isRoad && !occupied[x, y]) // Check also that the cell is not occupied
+                {
+                    float v = UnityEngine.Random.Range(0f, propDensity);
+                    if (noiseMap[x, y] < v)
+                    {
+                        GameObject propInstance = propsPrefabs[UnityEngine.Random.Range(0, propsPrefabs.Length)];
+                        GameObject prop = Instantiate(propInstance, new Vector3(x, 0, y), Quaternion.Euler(0, UnityEngine.Random.Range(0, 360f), 0));
+                        prop.transform.localScale = Vector3.one * UnityEngine.Random.Range(.8f, 1.2f);
+                    }
+                }
+            }
+        }
+    }
+    void GenerateFauna(CityCells[,] grid, bool[,] occupied)
+    {
+        float[,] noiseMap = new float[size, size];
+        float xOffset = UnityEngine.Random.Range(-10000f, 10000f);
+        float yOffset = UnityEngine.Random.Range(-10000f, 10000f);
+
+        // Generate Perlin noise map for prop placement
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float noiseValue = Mathf.PerlinNoise(x * faunaNoiseScale + xOffset, y * faunaNoiseScale + yOffset);
+                noiseMap[x, y] = noiseValue;
+            }
+        }
+
+        // Place props based on noise map, avoiding roads and occupied cells
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                CityCells cell = grid[x, y];
+                if (!cell.isRoad && !occupied[x, y]) // Check also that the cell is not occupied
+                {
+                    float v = UnityEngine.Random.Range(0f, faunaDensity);
+                    if (noiseMap[x, y] < v)
+                    {
+                        GameObject propInstance = faunaPrefabs[UnityEngine.Random.Range(0, faunaPrefabs.Length)];
+                        GameObject prop = Instantiate(propInstance, new Vector3(x, 0, y), Quaternion.Euler(0, UnityEngine.Random.Range(0, 360f), 0));
+                        prop.transform.localScale = Vector3.one * UnityEngine.Random.Range(.8f, 1.2f);
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**********************************************Draw Mesh****************************************/
 
     void DrawMesh(CityCells[,] grid)
     {
@@ -572,6 +699,7 @@ public class CityGrid : MonoBehaviour
         meshRenderer.material = terrainMaterial;
     }
 
+    /*****************************************Drawing Textures**************************************/
     void DrawTexture(CityCells[,] grid)
     {
         Texture2D texture = new Texture2D(size, size);
@@ -584,6 +712,10 @@ public class CityGrid : MonoBehaviour
                 if (cell.isRoad)
                 {
                     colorMap[y * size + x] = Color.black;
+                }
+                else if (occupied[x, y])
+                {
+                    colorMap[y * size + x] = Color.red;
                 }
                 else
                 {
