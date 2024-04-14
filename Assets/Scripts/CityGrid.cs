@@ -12,7 +12,6 @@ public class CityGrid : MonoBehaviour
     
     public float scale = .1f;
     public int size = 100;
-    private const float VerticalStreetChance = 0.3f;
     public int minStreetSpacing = 3;
     public int maxStreetSpacing = 9;
     public int roadHeightOffset = 0;
@@ -33,8 +32,8 @@ public class CityGrid : MonoBehaviour
     public float propDensity = 0.7f;
     public GameObject[] propsPrefabs;
     public GameObject[] faunaPrefabs;
-    public float faunaNoiseScale = 0.5f; // Adjust based on your desired scale
-    public float faunaDensity = 0.5f; // Adjust the threshold for density
+    public float faunaNoiseScale = 0.5f; 
+    public float faunaDensity = 0.5f; 
 
     CityCells[,] grid;
 
