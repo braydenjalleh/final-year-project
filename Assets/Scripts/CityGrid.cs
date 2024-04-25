@@ -13,7 +13,7 @@ public class CityGrid : MonoBehaviour
     public float scale = .1f;
     public int size = 100;
     public int minStreetSpacing = 3;
-    public int maxStreetSpacing = 9;
+    public int maxStreetSpacing = 15;
     public int roadHeightOffset = 0;
 
     //Road objects
@@ -31,9 +31,9 @@ public class CityGrid : MonoBehaviour
     public float propNoiseScale = 0.6f;
     public float propDensity = 0.7f;
     public GameObject[] propsPrefabs;
-    public GameObject[] faunaPrefabs;
-    public float faunaNoiseScale = 0.5f; 
-    public float faunaDensity = 0.5f; 
+    public GameObject[] floraPrefabs;
+    public float floraNoiseScale = 0.5f; 
+    public float floraDensity = 0.5f; 
 
     CityCells[,] grid;
 
@@ -41,32 +41,21 @@ public class CityGrid : MonoBehaviour
     void Start()
     {
         
-
-        float[,] falloffMap = new float[size, size];
-        for (int y = 0; y < size; y++)
-        {
-            for (int x = 0; x < size; x++)
-            {
-                float xv = x / (float)size * 2 - 1;
-                float yv = y / (float)size * 2 - 1;
-                float v = Mathf.Max(Mathf.Abs(xv), Mathf.Abs(yv));
-                falloffMap[x, y] = Mathf.Pow(v, 3f) / (Mathf.Pow(v, 3f) + Mathf.Pow(2.2f - 2.2f * v, 3f));
-            }
-        }
         grid = new CityCells[size, size];
 
         occupied = new bool[size, size];
         GenerateCityLayout();
-        GenerateBuildings();
-        GenerateProps(grid, occupied);
-        GenerateFauna(grid, occupied);
         DrawMesh(grid);
         DrawTexture(grid);
+        GenerateBuildings();
+        GenerateProps(grid, occupied);
+        GenerateFlora(grid, occupied);
+        
     }
 
     void GenerateCityLayout()
     {
-        //Initializing the entire grid as a building first
+        //Initializing the entire grid as a building cell first
         for (int x = 0; x < size; x++)
         {
             for (int y = 0; y < size; y++)
@@ -91,7 +80,7 @@ public class CityGrid : MonoBehaviour
         //Start drawing the streets within the grid at random points.
         List<int> horizontalStreetPosition = new List<int>();
         // Randomly add horizontal streets
-        int horizontalStreets = 10/*Random.Range(minStreetSpacing, maxStreetSpacing)*/;
+        int horizontalStreets = 10;
         while (horizontalStreets < size)
         {
             for (int x = 0; x < size; x++)
@@ -100,14 +89,14 @@ public class CityGrid : MonoBehaviour
             }
             //Debug.Log("Horizontal Street at Y: " + yStreet);
             horizontalStreetPosition.Add(horizontalStreets);
-            horizontalStreets += 10/*Random.Range(minStreetSpacing, maxStreetSpacing)*/; //Temporarily set the increase in horizontal spacing size to 10+
+            horizontalStreets += 10; 
         }
 
         /********************************************************VERTICAL STREETS SECITON***************************************************************************/
 
         //ORIGINAL EDITION SUPER BASIC WITH GRID LAYOUT SPREADING ACROSS THE CITY.
         // Randomly add vertical streets
-        //int xStreet = Random.Range(minStreetSpacing, maxStreetSpacing);
+        //int xStreet = UnityEngine.Random.Range(minStreetSpacing, maxStreetSpacing);
         //while (xStreet < size)
         //{
         //    for (int y = 0; y < size; y++)
@@ -118,35 +107,11 @@ public class CityGrid : MonoBehaviour
         //        }
         //    }
         //    Debug.Log("Vertical Street at X: " + xStreet);
-        //    xStreet += Random.Range(minStreetSpacing, maxStreetSpacing);
+        //    xStreet += UnityEngine.Random.Range(minStreetSpacing, maxStreetSpacing);
         //}
 
-        //EDITION 2 Basic random streets printed. *SO FAR THE BEST OPTION*
-        //for (int verticalStreets = 0; verticalStreets < size; verticalStreets += Random.Range(minStreetSpacing, maxStreetSpacing))
-        //{
-        //    // Choose random start and end points for the vertical street among the horizontal streets
-        //    int startHorizontalIndex = Random.Range(0, horizontalStreetPosition.Count);
-        //    int endHorizontalIndex = Random.Range(startHorizontalIndex, horizontalStreetPosition.Count);
-
-        //    for (int i = startHorizontalIndex; i <= endHorizontalIndex; i++)
-        //    {
-        //        int y = horizontalStreetPosition[i];
-        //        grid[verticalStreets, y] = new CityCells(true);
-
-        //        // Fill the space between this horizontal street and the next, if it's not the last one
-        //        if (i < endHorizontalIndex)
-        //        {
-        //            int nextY = horizontalStreetPosition[i + 1];
-        //            for (int fillY = y + 1; fillY < nextY; fillY++)
-        //            {
-        //                grid[verticalStreets, fillY] = new CityCells(true);
-        //            }
-        //        }
-        //    }
-        //} 
-
         //
-        //Latest working edition... Doing a different logic of creating vertical streets that go up/down. Very bad and messy
+        //Edition 2. Doing a different logic of creating vertical streets that go up/down
         // New logic for creating vertical streets
         for (int row = 0; row < size; row += 10)
         {
@@ -188,7 +153,7 @@ public class CityGrid : MonoBehaviour
             {
                 for (int col = 0; col < size; col++)
                 {
-                    if (TryCreateVerticalStreet(row, col, row - 10, grid)) break; 
+                    if (TryCreateVerticalStreet(row, col, row - 10, grid)) break;
                 }
             }
         }
@@ -250,7 +215,6 @@ public class CityGrid : MonoBehaviour
         bool east = IsRoad(x + 1, y);
         bool west = IsRoad(x - 1, y);
 
-        // If the road runs north-south, no rotation needed
         // If the road runs east-west
         if (east && west && !north && !south)
         {
@@ -575,7 +539,7 @@ public class CityGrid : MonoBehaviour
             }
         }
     }
-    /**********************************************Generate Props****************************************/
+    /**********************************************Generate Props**********************************************/
 
     void GenerateProps(CityCells[,] grid, bool[,] occupied)
     {
@@ -612,7 +576,7 @@ public class CityGrid : MonoBehaviour
             }
         }
     }
-    void GenerateFauna(CityCells[,] grid, bool[,] occupied)
+    void GenerateFlora(CityCells[,] grid, bool[,] occupied)
     {
         float[,] noiseMap = new float[size, size];
         float xOffset = UnityEngine.Random.Range(-10000f, 10000f);
@@ -623,7 +587,7 @@ public class CityGrid : MonoBehaviour
         {
             for (int x = 0; x < size; x++)
             {
-                float noiseValue = Mathf.PerlinNoise(x * faunaNoiseScale + xOffset, y * faunaNoiseScale + yOffset);
+                float noiseValue = Mathf.PerlinNoise(x * floraNoiseScale + xOffset, y * floraNoiseScale + yOffset);
                 noiseMap[x, y] = noiseValue;
             }
         }
@@ -636,10 +600,10 @@ public class CityGrid : MonoBehaviour
                 CityCells cell = grid[x, y];
                 if (!cell.isRoad && !occupied[x, y]) // Check also that the cell is not occupied
                 {
-                    float v = UnityEngine.Random.Range(0f, faunaDensity);
+                    float v = UnityEngine.Random.Range(0f, floraDensity);
                     if (noiseMap[x, y] < v)
                     {
-                        GameObject propInstance = faunaPrefabs[UnityEngine.Random.Range(0, faunaPrefabs.Length)];
+                        GameObject propInstance = floraPrefabs[UnityEngine.Random.Range(0, floraPrefabs.Length)];
                         GameObject prop = Instantiate(propInstance, new Vector3(x, 0, y), Quaternion.Euler(0, UnityEngine.Random.Range(0, 360f), 0));
                         prop.transform.localScale = Vector3.one * UnityEngine.Random.Range(.8f, 1.2f);
                     }
@@ -730,22 +694,4 @@ public class CityGrid : MonoBehaviour
         meshRenderer.material = terrainMaterial;
         meshRenderer.material.mainTexture = texture;
     }
-
-    //void OnDrawGizmos()
-    //{
-    //    if (!Application.isPlaying) return;
-    //    for (int y = 0; y < size; y++)
-    //    {
-    //        for (int x = 0; x < size; x++)
-    //        {
-    //            CityCells cell = grid[y, x];
-    //            if (cell.isRoad)
-    //                Gizmos.color = Color.black;
-    //            else
-    //                Gizmos.color = Color.green;
-    //            Vector3 pos = new Vector3(x, 0, y);
-    //            Gizmos.DrawCube(pos, Vector3.one);
-    //        }
-    //    }
-    //}
 }
