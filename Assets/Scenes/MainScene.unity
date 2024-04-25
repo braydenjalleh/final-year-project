@@ -158,8 +158,8 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 2
-    m_Resolution: -1
+    m_Type: 1
+    m_Resolution: 2
     m_CustomResolution: -1
     m_Strength: 1
     m_Bias: 0.05
@@ -430,8 +430,8 @@ MonoBehaviour:
     width: 5
     depth: 3
     zone: commercial
-  propNoiseScale: 0.5
-  propDensity: 0.5
+  propNoiseScale: 0.6
+  propDensity: 0.7
   propsPrefabs:
   - {fileID: 264655947184125349, guid: 5c4465f0dc2413740baf6f11add494d9, type: 3}
   - {fileID: 6808316663284047437, guid: a68011704bbecb746ae72c66e536bab9, type: 3}
@@ -444,13 +444,13 @@ MonoBehaviour:
   - {fileID: 8695592120001747941, guid: 8aae2c068fb340f49aa1271a1667db83, type: 3}
   - {fileID: 6593479792650537780, guid: 8bff96a1de7af5f418998c63a475c52d, type: 3}
   - {fileID: 6597381632293174251, guid: 929ecabeb4c20dc4c839ce0083d33213, type: 3}
-  faunaPrefabs:
+  floraPrefabs:
   - {fileID: 5609588624655586517, guid: 1a0dbf29fade4ae45afa63fef8933e61, type: 3}
   - {fileID: 4094607428883843720, guid: f6d99c6a07bb9f240af7a91b10266316, type: 3}
   - {fileID: 865674994942243246, guid: 2df323eda2ca865419e293292af0b1ff, type: 3}
   - {fileID: 8020207311212164771, guid: e606733dfe70c6e4e912c43a482cf46b, type: 3}
-  faunaNoiseScale: 0.4
-  faunaDensity: 0.8
+  floraNoiseScale: 0.5
+  floraDensity: 0.5
 --- !u!4 &709614351
 Transform:
   m_ObjectHideFlags: 0
@@ -491,7 +491,7 @@ AudioListener:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_Enabled: 1
+  m_Enabled: 0
 --- !u!20 &963194227
 Camera:
   m_ObjectHideFlags: 0
@@ -536,11 +536,11 @@ Camera:
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
-  m_HDR: 1
-  m_AllowMSAA: 1
+  m_HDR: 0
+  m_AllowMSAA: 0
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
-  m_OcclusionCulling: 1
+  m_OcclusionCulling: 0
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
 --- !u!4 &963194228
