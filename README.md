@@ -1,5 +1,7 @@
 [![Open in Codespaces](https://classroom.github.com/assets/launch-codespace-7f7980b617ed060a017424585567c406b6ee15c891e84e1186181d67ecf80aa0.svg)](https://classroom.github.com/open-in-codespaces?assignment_repo_id=12927300)
 
+# Designing 3D City Layouts Using Procedural Content Generation Techniques
+This project explores the use of procedural content generation (PCG) techniques to automatically create 3D city layouts in Unity. By utilizing algorithms that simulate urban planning, this project demonstrates the potential for generating expansive and detailed virtual cityscapes dynamically. The project leverages Unity's powerful rendering capabilities alongside custom scripts and imported assets from the Unity Asset Store to showcase realistic city environments.
 
 ## Installation
 
