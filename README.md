@@ -13,7 +13,6 @@ Ensure you have the following installed:
 1. **Clone the repository** to your local machine using Git. Open a terminal and run the following command:
    ```bash
    git clone https://github.com/uol-feps-soc-comp3931-2324-classroom/final-year-project-braydennj.git
-2. cd final-year-project-braydennj
 
 ## Setting Up the Project in Unity
 Open Unity Hub:
