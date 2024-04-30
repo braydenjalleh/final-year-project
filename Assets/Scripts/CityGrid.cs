@@ -33,7 +33,11 @@ public class CityGrid : MonoBehaviour
     public GameObject[] propsPrefabs;
     public GameObject[] floraPrefabs;
     public float floraNoiseScale = 0.5f; 
-    public float floraDensity = 0.5f; 
+    public float floraDensity = 0.5f;
+
+    private int totalBuildings = 0;
+    private int totalProps = 0;
+    private int totalFlora = 0;
 
     CityCells[,] grid;
 
@@ -50,7 +54,7 @@ public class CityGrid : MonoBehaviour
         GenerateBuildings();
         GenerateProps(grid, occupied);
         GenerateFlora(grid, occupied);
-        
+        Debug.Log($"Total Buildings: {totalBuildings}, Total Props: {totalProps}, Total Flora: {totalFlora}, Total Nature: {totalFlora + totalProps}");
     }
 
     void GenerateCityLayout()
@@ -165,7 +169,7 @@ public class CityGrid : MonoBehaviour
                 if (grid[x, y].isRoad)
                 {
                     GameObject roadPrefab = DetermineRoadPrefab(x, y);
-                    Quaternion rotation = DetermineRoadRotation(x, y); 
+                    Quaternion rotation = DetermineRoadRotation(x, y);
                     Instantiate(roadPrefab, new Vector3(x + 0.5f, roadHeightOffset, y + 0.5f), rotation);
                 }
             }
@@ -363,6 +367,7 @@ public class CityGrid : MonoBehaviour
                 // Instantiate and mark occupied
                 GameObject buildingInstance = Instantiate(selectedBuilding.prefab, worldPosition, rotation);
                 MarkBuildingOccupied(x, y, selectedBuilding, rotation);
+                totalBuildings++;
                 return; // Successful placement
             }
             else
@@ -571,6 +576,7 @@ public class CityGrid : MonoBehaviour
                         GameObject propInstance = propsPrefabs[UnityEngine.Random.Range(0, propsPrefabs.Length)];
                         GameObject prop = Instantiate(propInstance, new Vector3(x, 0, y), Quaternion.Euler(0, UnityEngine.Random.Range(0, 360f), 0));
                         prop.transform.localScale = Vector3.one * UnityEngine.Random.Range(.8f, 1.2f);
+                        totalProps++;
                     }
                 }
             }
@@ -606,6 +612,7 @@ public class CityGrid : MonoBehaviour
                         GameObject propInstance = floraPrefabs[UnityEngine.Random.Range(0, floraPrefabs.Length)];
                         GameObject prop = Instantiate(propInstance, new Vector3(x, 0, y), Quaternion.Euler(0, UnityEngine.Random.Range(0, 360f), 0));
                         prop.transform.localScale = Vector3.one * UnityEngine.Random.Range(.8f, 1.2f);
+                        totalFlora++;
                     }
                 }
             }
